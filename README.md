@@ -1,8 +1,8 @@
-# okyra vs Vercel agent-browser: agent benchmark
+# okyra agent benchmark
 
-Raw results, method and harness for the comparison between
+Raw results, method and harness for our comparison between
 okyra (STH Labs) and
-[Vercel agent-browser](https://github.com/vercel-labs/agent-browser) as browser
+[agent-browser by Vercel](https://github.com/vercel-labs/agent-browser) as browser
 tools for an AI agent. Every number here is computed from the JSON files in
 `results/`, one file per run, exactly as Claude Code wrote them.
 
@@ -14,16 +14,16 @@ CLI with its own skill, `abmcp` is the agent-browser MCP server.
 
 ## Headline
 
-Across six browser tasks, 5 runs each, on Claude Opus 5.5 in Claude Code:
+In our benchmark, across six browser tasks, 5 runs each, on Claude Opus 5.5 in Claude Code:
 
 | Measure, average of the six task medians | okyra | agent-browser CLI | Difference |
 | --- | ---: | ---: | ---: |
 | Model turns per task | 3.3 | 6.0 | 44% fewer |
 | Model cost per task (USD) | $0.059 | $0.114 | $0.054 less, 48% less |
-| Model time per task | 9.3 s | 18.1 s | 8.8 s less, 49% less |
+| Model API time per task (not end to end time) | 9.3 s | 18.1 s | 8.8 s less, 49% less |
 | Input tokens per task | 133,786 | 253,696 | 47% fewer |
 | Output tokens per task | 508 | 919 | 45% fewer |
-| Correct answers | 29 of 30 | 30 of 30 | the okyra miss was the test site being down, see Limits |
+| Correct answers | 29 of 30 | 30 of 30 | okyra's one miss was a run in which the test site returned an error page, see Limits |
 
 Cost saving per task on every task: $0.022 to $0.080, 26% to 58%.
 
@@ -36,7 +36,7 @@ Cost saving per task on every task: $0.022 to $0.080, 26% to 58%.
 | Model | `claude-opus-5-5`, standard speed, fast mode off (from `modelUsage` in each run) |
 | Cost basis | `total_cost_usd` as Claude Code reports it, list price (`costBasis: "list"` in each run) |
 | okyra build | the build after the V2 fixes (`kyma2` in v2, `kyma` in round 3), through its MCP server |
-| agent-browser | 0.39.0, through its CLI in Bash with its own `core` skill (`abcli`), which is how Vercel recommends agents use it and was its best arm. Its MCP server (`abmcp`) ran in v2 only and was worse, see below |
+| agent-browser | 0.39.0, through its CLI in Bash with its own `core` skill (`abcli`), which its README marks as recommended for AI coding assistants and was its best arm. Its MCP server (`abmcp`) ran in v2 only and was worse, see below |
 | Browser | the same Brave install for both, both tools warm (daemon and browser up before each run) |
 | Runs | 5 per tool per task. Medians reported, ranges kept below |
 | Correctness | each answer checked by `correct()` in `harness/report.py` |
@@ -149,10 +149,10 @@ Only the Claude Code and Opus 5.5 numbers above are measured.
 - **Wall clock time is not claimed.** Median end to end time was 19 s for okyra and 68 s for agent-browser, but that includes harness start and Bash tool overhead that was not isolated. We will publish it once it is measured on its own.
 - **Author's prompt hook.** The author's Claude Code setup adds a reply format rule to every prompt. It ran in every run of both tools, so a few answers start with an "Answer" label. It affects both tools equally.
 - **Not compared.** Playwright MCP, Chrome DevTools MCP, browser-use and Stagehand were not benchmarked. No saving against them may be claimed.
-- **Reproducible.** `harness/run.sh <arm> <task> <n>` then `harness/report.py harness/out`. Anyone can rerun it with their own Claude Code account.
+- **Rerunning.** `harness/run.sh <arm> <task> <n>` then `harness/report.py harness/out`. The harness needs the okyra binary, which is not publicly downloadable yet, so a third party cannot rerun the okyra arm today. The agent-browser arm can be rerun now with your own Claude Code account.
 
 
-## Rerun it
+## Rerun it (once okyra is downloadable)
 
 ```sh
 harness/run.sh abcli t5 1      # one run: arm, task, run number
@@ -162,7 +162,8 @@ harness/report.py harness/out  # medians and correctness per arm and task
 
 Needs Claude Code (`claude`), `jq`, a Chromium based browser, agent-browser
 (`npm i agent-browser`, or set `$AGENT_BROWSER`) and okyra (on PATH, or set
-`$OKYRA`). `report.py` skips run 0, which is meant as a harness smoke test.
+`$OKYRA`). okyra is not publicly downloadable yet; this section becomes usable
+when it is. `report.py` skips run 0, which is meant as a harness smoke test.
 
 ## Files
 
@@ -176,5 +177,9 @@ Needs Claude Code (`claude`), `jq`, a Chromium based browser, agent-browser
 ## Licence
 
 Scripts: MIT. Results and text: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-Copyright 2026 Stavros Thalassinos, trading as STH Labs. "Vercel" and
-"agent-browser" belong to their owners; this repo is not affiliated with Vercel.
+Copyright 2026 Stavros Thalassinos, trading as STH Labs.
+
+agent-browser is a product of Vercel Inc. okyra and STH Labs are not affiliated
+with or endorsed by Vercel. Vercel, the Vercel design, Next.js and related
+marks, designs and logos are trademarks or registered trademarks of Vercel, Inc.
+or its affiliates in the US and other countries.
